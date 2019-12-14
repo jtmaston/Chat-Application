@@ -1,27 +1,28 @@
 import socket
 import threading
 import json
-from dev.PacketHandler import PacketFormatValidator
-from dev.PacketHandler import PotatoPackage
-from dev.PacketHandler import PacketSchema
+from PacketHandler import PacketFormatValidator
+from PacketHandler import PotatoPackage
+from PacketHandler import PacketSchema
 routes = {}  # routes dict, format user: (ip,port)
 
 
 def Handshake(connection):
 
-    data = PotatoPackage(connection.recv(1024))  # load json from recvd packet
-    print(isinstance(data, PacketSchema))
-    if not (PacketFormatValidator(data) and data.command == 'hello'):
+    HSPacket = PotatoPackage(connection.recv(1024))  # load json from recvd packet
+    if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'hello'):
         connection.send(b"Malformed input!")
         print("Broken connection! Sending abort message...")
         return False
     else:
-        data.command = 'read_back'
-        connection.send(data.DumpJson())
-        data.LoadJson(connection.recv(1024))
-        if data.command == 'ok':
-            print(f"Handshake established with {data.hostname}: {data.port}")
-            return data
+        HSPacket.command = 'read_back'
+        connection.send(HSPacket.DumpJson())
+        HSPacket.LoadJson(connection.recv(1024))
+        if HSPacket.command == 'ok':
+            print(f"Handshake established with {HSPacket.hostname}: {HSPacket.port}")
+            HSPacket.command = 'ready'
+            connection.send(HSPacket.DumpJson())
+            return HSPacket
         else:
             return False
 
