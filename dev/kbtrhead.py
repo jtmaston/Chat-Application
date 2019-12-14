@@ -1,7 +1,13 @@
 import os
 import sys
+import time
 import threading
 
+
+class ThreadMessage:
+    message = ''
+    handled = True
+thread_message = ThreadMessage()
 
 class KeyboardThread(threading.Thread):
 
@@ -16,12 +22,15 @@ class KeyboardThread(threading.Thread):
 
 
 def process(inp):
-    print(inp)
+    global thread_message
+    thread_message.message = inp
+    thread_message.handled = False
 
 
 KeyboardThread(process)
 i = 0
+print('>', end='')
 while True:
-    os.sleep(1)
-    i += 1
-    print(i)
+    if not thread_message.handled:
+        print(f"\rMessage recieved: {thread_message.message}\n>", end='')
+        thread_message.handled = True
