@@ -1,4 +1,5 @@
 import json
+import socket
 
 
 class PacketSchema:
@@ -15,7 +16,7 @@ class PacketSchema:
         if JsonData:
             self.LoadJson(JsonData)
 
-    def load(self, json_data):   # transfer data from json to parameters
+    def load(self, json_data):  # transfer data from json to parameters
         self.hostname = json_data['hostname']
         self.port = json_data['port']
         self.username = json_data['username']
@@ -51,6 +52,7 @@ class HandshakePacket(PacketSchema):
         self.processed = False
         if JsonData:
             self.LoadJson(JsonData)
+
     def LoadIp(self, Address):
         if not isinstance(Address, tuple):
             raise TypeError
@@ -59,8 +61,16 @@ class HandshakePacket(PacketSchema):
             self.port = Address[1]
 
 
-class PotatoPackage(PacketSchema):
-    pass
+class ClientPacket(PacketSchema):
+    """Packet used for exchanging chat data"""
+    def Dispatch(self):
+        pass
+
+
+class BadPacket(PacketSchema):
+    def __init__(self, JsonData):
+        super().__init__(JsonData)
+        self.command = "BAD"
 
 
 def PacketFormatValidator(TestedObject):

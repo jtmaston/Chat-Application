@@ -2,14 +2,14 @@ import socket
 import threading
 import json
 from PacketHandler import PacketFormatValidator
-from PacketHandler import PotatoPackage
-from PacketHandler import PacketSchema
+from PacketHandler import HandshakePacket
+from PacketHandler import ClientPacket
+
 routes = {}  # routes dict, format user: (ip,port)
 
 
 def Handshake(connection):
-
-    HSPacket = PotatoPackage(connection.recv(1024))  # load json from recvd packet
+    HSPacket = HandshakePacket(connection.recv(1024))  # load json from recvd packet
     if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'hello'):
         connection.send(b"Malformed input!")
         print("Broken connection! Sending abort message...")
@@ -27,6 +27,30 @@ def Handshake(connection):
             return False
 
 
+def Dialogue(connection):
+    ChatPacket = ClientPacket(JsonData=None)
+    data = 0
+    while True:
+        ChatPacket.LoadJson(connection.recv(1024))
+        if ChatPacket.command == 'send':
+            try:
+                DestinationSocket = routes[ChatPacket.destination]
+            except KeyError:
+                ChatPacket.command = 'usrfail'
+                ChatPacket.processed = True
+                connection.send(ChatPacket.DumpJson())
+            else:
+                DestinationSocket.send(ChatPacket.DumpJson())
+                data = DestinationSocket.recv(1024)
+                print(data)
+                ChatPacket.LoadJson(data)
+                if ChatPacket.processed:
+                    ChatPacket.command = 'sent'
+                    connection.send(ChatPacket.DumpJson())
+
+
+
+
 class ClientThread(threading.Thread):
     def __init__(self, Address, ClientSocket):
         threading.Thread.__init__(self)
@@ -36,7 +60,8 @@ class ClientThread(threading.Thread):
     def run(self):
         user = Handshake(self.socket)
         if user:
-            routes[user.username] = (user.hostname, user.port)
+            routes[user.username] = self.socket
+        Dialogue(self.socket)
 
 
 def main():
@@ -52,7 +77,6 @@ def main():
         ClientSocket, clientAddress = server.accept()
         NewThread = ClientThread(clientAddress, ClientSocket)
         NewThread.start()
-        # print(routes)
 
 
 if __name__ == '__main__':
