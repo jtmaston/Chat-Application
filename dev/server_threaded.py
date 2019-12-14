@@ -1,55 +1,26 @@
 import socket
 import threading
 import json
-from cerberus import Validator
-
-PacketSchema = {
-    'command': {'type': 'string'},
-    'host': {'type': 'string'},
-    'port': {'type': 'integer'},
-    'username': {'type': 'string'},
-    'message': {'type': 'string'},
-    'destination': {'type': 'string'},
-    'processed': {'type': 'boolean'}
-}
-
+from dev.PacketHandler import PacketFormatValidator
+from dev.PacketHandler import PotatoPackage
+from dev.PacketHandler import PacketSchema
 routes = {}  # routes dict, format user: (ip,port)
 
 
-class ClientData:
-    hostname = '0.0.0.0'
-    port = 8000
-    username = 'default'
-    message = 'placeholder'
-    command = 'default'
-    destination = 'someone else'
-    processed = False
-
-    def load(self, json_data):
-        self.hostname = json_data['host']
-        self.port = json_data['port']
-        self.username = json_data['username']
-        self.message = json_data['message']
-        self.command = json_data['command']
-        self.destination = json_data['destination']
-        self.processed = json_data['processed']
-
-    def __str__(self):
-        return self.hostname + '\n' + str(self.port) + '\n' + self.username
-
-
 def Handshake(connection):
-    v = Validator()
-    data = json.loads(connection.recv(1024))
-    if not (v.validate(data, PacketSchema) and data['command'] == 'hello'):
+
+    data = PotatoPackage(connection.recv(1024))  # load json from recvd packet
+    print(isinstance(data, PacketSchema))
+    if not (PacketFormatValidator(data) and data.command == 'hello'):
         connection.send(b"Malformed input!")
+        print("Broken connection! Sending abort message...")
         return False
     else:
-        data['command'] = 'read_back'
-        connection.send(json.dumps(data).encode('UTF-8'))
-        data = json.loads(connection.recv(1024))
-        if data['command'] == 'ok':
-            print(f"Handshake established with {data['host']}: {data['port']}")
+        data.command = 'read_back'
+        connection.send(data.DumpJson())
+        data.LoadJson(connection.recv(1024))
+        if data.command == 'ok':
+            print(f"Handshake established with {data.hostname}: {data.port}")
             return data
         else:
             return False
@@ -64,7 +35,7 @@ class ClientThread(threading.Thread):
     def run(self):
         user = Handshake(self.socket)
         if user:
-            routes[user['username']] = (user['host'], user['port'])
+            routes[user.username] = (user.hostname, user.port)
 
 
 def main():
@@ -77,10 +48,10 @@ def main():
     print("Waiting for client request..")
     while True:
         server.listen(1)
-        clientsock, clientAddress = server.accept()
-        newthread = ClientThread(clientAddress, clientsock)
-        newthread.start()
-        print(routes)
+        ClientSocket, clientAddress = server.accept()
+        NewThread = ClientThread(clientAddress, ClientSocket)
+        NewThread.start()
+        # print(routes)
 
 
 if __name__ == '__main__':

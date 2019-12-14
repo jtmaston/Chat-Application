@@ -11,14 +11,15 @@ def Handshake(connection):
         'port': ip_port[1],
         'username': 'Alexey',
         'message': 'Henlo',
-        'destination': 'David'
+        'destination': 'David',
+        'processed': True
     }
     data = json.dumps(HandshakeTest)
     connection.send(data.encode('UTF-8'))
 
 def client():
     host = '127.0.0.1'
-    port = 12345
+    port = 8080
     connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connection.connect((host, port))
     Handshake(connection)
