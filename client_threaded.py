@@ -57,7 +57,7 @@ def Handshake(connection):
 
 
 def Dialogue(connection, DialoguePacket):
-
+    print(connection.getsockname())
     # usr = input('Please enter username: ')
     # dest = input('Please enter destination username: ')
     DialoguePacket.username = 'Alexey'  # TODO: unhardcode

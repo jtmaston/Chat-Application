@@ -31,7 +31,9 @@ def Dialogue(connection):
     ChatPacket = ClientPacket(JsonData=None)
     data = 0
     while True:
-        ChatPacket.LoadJson(connection.recv(1024))
+        data = connection.recv(1024)
+        ChatPacket.LoadJson(data)
+        print(data)
         if ChatPacket.command == 'send':
             try:
                 DestinationSocket = routes[ChatPacket.destination]

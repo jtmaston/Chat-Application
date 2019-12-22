@@ -47,12 +47,16 @@ def listener():
         ListenerPacket = Handshake(ClientConnection)  # go ahead and check if the handshake went all right
         if ListenerPacket.command == 'BAD':
             ClientConnection.close()  # if the pipe is broken, reset connection and try again
+
     print("Listening...")
-    ListenerPacket.LoadJson(ClientConnection.recv(1024))
-    if not ListenerPacket.processed:
-        print(f"Message received from: {ListenerPacket.username}: {ListenerPacket.message}")
-        ListenerPacket.processed = True
-        ClientConnection.send(ListenerPacket.DumpJson())
+    while True:
+        data = ClientConnection.recv(1024)
+        ListenerPacket.LoadJson(data)
+        # print(ClientConnection)
+        if not ListenerPacket.processed:
+            print(f"Message received from: {ListenerPacket.username}: {ListenerPacket.message}")
+            ListenerPacket.processed = True
+            ClientConnection.send(ListenerPacket.DumpJson())
 
 
 if __name__ == '__main__':
