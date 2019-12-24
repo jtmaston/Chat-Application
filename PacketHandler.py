@@ -1,32 +1,40 @@
 import json
 import socket
 
+DebugFlag = True
+
+"""~~~~DEV2 TODO~~~~"""
+# Done: Sender and address
+# Done: All ip addresses become tuples, w/o separate methods
+# Todo: Comment and code cleanup
+# Todo: When done, merge into dev
+# Todo: Perhaps get rid of aux packages?
+"""~~~~~~~~~~~~~~~~~"""
 
 class PacketSchema:
     """Base schema for all packet types"""
 
     def __init__(self, JsonData):
-        self.command = ''
-        self.hostname = ''
-        self.port = 0
-        self.username = ''
-        self.message = ''
-        self.destination = ''
+        self.senderAddress = tuple()
+        self.destinationAddress = tuple()
+        self.senderUsername = str()
+        self.destinationUsername = str()
+        self.command = str()
         self.processed = False
         if JsonData:
             self.LoadJson(JsonData)
 
     def load(self, json_data):  # transfer data from json to parameters
-        self.hostname = json_data['hostname']
-        self.port = json_data['port']
-        self.username = json_data['username']
-        self.message = json_data['message']
+        self.senderAddress = json_data['senderAddress']
+        self.destinationAddress = json_data['destinationAddress']
+        self.senderUsername = json_data['senderUsername']
+        self.destinationUsername = json_data['destinationUsername']
         self.command = json_data['command']
-        self.destination = json_data['destination']
         self.processed = json_data['processed']
 
     def __str__(self):
-        return self.hostname + '\n' + str(self.port) + '\n' + self.username
+        return f"Sending package from {self.senderAddress[0]}:{self.senderAddress[1]} to " \
+               f"{self.destinationAddress[0]}:{self.destinationAddress[1]}"
 
     def DumpJson(self):  # returns binary json data
         return json.dumps(self.__dict__).encode('UTF-8')
@@ -42,35 +50,24 @@ class PacketSchema:
 
 class HandshakePacket(PacketSchema):
     """Packet used in Handshake part of communication"""
-
-    def __init__(self, JsonData):
-        super().__init__(JsonData)
-        self.command = 'hello'
-        self.username = 'Alexey'
-        self.message = "nobody's home"
-        self.destination = 'Danny'
-        self.processed = False
-        if JsonData:
-            self.LoadJson(JsonData)
-
-    def LoadIp(self, Address):
-        if not isinstance(Address, tuple):
-            raise TypeError
-        else:
-            self.hostname = Address[0]
-            self.port = Address[1]
+    pass
 
 
 class ClientPacket(PacketSchema):
     """Packet used for exchanging chat data"""
-    def Dispatch(self):
-        pass
+    pass
+
+
+class ListenerPacket(PacketSchema):
+    def __init__(self, JsonData):
+        super().__init__(JsonData)
+        self.destinationAddress = "LISTENER"
 
 
 class BadPacket(PacketSchema):
     def __init__(self, JsonData):
         super().__init__(JsonData)
-        self.command = "BAD"
+        self.command = "Bad"
 
 
 def PacketFormatValidator(TestedObject):

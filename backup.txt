@@ -1,0 +1,18 @@
+ data = 0
+    while True:
+        data = connection.recv(1024)
+        ChatPacket.LoadJson(data)
+        if ChatPacket.command[:5] == 'send ':
+            try:
+                DestinationSocket = routes[ChatPacket.destinationUsername]
+            except KeyError:
+                ChatPacket.command = 'usrfail'
+                ChatPacket.processed = True
+                connection.send(ChatPacket.DumpJson())
+            else:
+                print(ChatPacket.DumpJson())
+                DestinationSocket.send(ChatPacket.DumpJson())
+                data = DestinationSocket.recv(1024)
+                if ChatPacket.processed:
+                    ChatPacket.command = 'sent'
+                    connection.send(ChatPacket.DumpJson())

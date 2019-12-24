@@ -1,17 +1,17 @@
 import socket
 import threading
-import json
-from PacketHandler import PacketFormatValidator
+
 from PacketHandler import HandshakePacket
-from PacketHandler import ClientPacket
+from PacketHandler import PacketFormatValidator
 
 routes = {}  # routes dict, format user: (ip,port)
 
 
 def Handshake(connection):
     HSPacket = HandshakePacket(connection.recv(1024))  # load json from recvd packet
-    if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'hello'):
-        connection.send(b"Malformed input!")
+    if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'Handshake'):
+        HSPacket.command = 'Bad'
+        connection.send(HSPacket.DumpJson())
         print("Broken connection! Sending abort message...")
         return False
     else:
@@ -19,7 +19,7 @@ def Handshake(connection):
         connection.send(HSPacket.DumpJson())
         HSPacket.LoadJson(connection.recv(1024))
         if HSPacket.command == 'ok':
-            print(f"Handshake established with {HSPacket.hostname}: {HSPacket.port}")
+            print(f"Handshake established with {connection.getpeername()}")
             HSPacket.command = 'ready'
             connection.send(HSPacket.DumpJson())
             return HSPacket
@@ -27,30 +27,21 @@ def Handshake(connection):
             return False
 
 
-def Dialogue(connection):
-    ChatPacket = ClientPacket(JsonData=None)
-    data = 0
+def Dialogue(connection, ChatPacket):
     while True:
         data = connection.recv(1024)
         ChatPacket.LoadJson(data)
-        print(data)
-        if ChatPacket.command == 'send':
+        if ChatPacket.command[:5] == 'send ':
             try:
-                DestinationSocket = routes[ChatPacket.destination]
+                DestinationSocket = routes[ChatPacket.destinationUsername]
             except KeyError:
                 ChatPacket.command = 'usrfail'
                 ChatPacket.processed = True
                 connection.send(ChatPacket.DumpJson())
             else:
                 DestinationSocket.send(ChatPacket.DumpJson())
-                data = DestinationSocket.recv(1024)
-                print(data)
-                ChatPacket.LoadJson(data)
-                if ChatPacket.processed:
-                    ChatPacket.command = 'sent'
-                    connection.send(ChatPacket.DumpJson())
-
-
+                ChatPacket.command = 'sent'
+                connection.send(ChatPacket.DumpJson())
 
 
 class ClientThread(threading.Thread):
@@ -60,10 +51,10 @@ class ClientThread(threading.Thread):
         self.address = Address
 
     def run(self):
-        user = Handshake(self.socket)
+        user = Handshake(self.socket)  # handshake part
         if user:
-            routes[user.username] = self.socket
-        Dialogue(self.socket)
+            routes[user.senderUsername] = self.socket  # assign name to address book
+        Dialogue(connection=self.socket, ChatPacket=user)
 
 
 def main():
