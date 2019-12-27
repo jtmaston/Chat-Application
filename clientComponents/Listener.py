@@ -6,7 +6,7 @@ from PacketHandler import BadPacket, ClientPacket
 from PacketHandler import HandshakePacket
 
 
-def Handshake(connection, Username, Destination):
+def Handshake(connection, Username):
     SenderAddress = connection.getsockname()  # get ip:port data, to be used in json
     HandshakeJson = json.dumps({  # generate the handshake packet
         'senderAddress': SenderAddress,
@@ -29,15 +29,15 @@ def Handshake(connection, Username, Destination):
         data = HSPacket.DumpJson()
         connection.send(data)
     else:
-        return lambda x: BadPacket(JsonData=None)  # fail
+        return lambda x: BadPacket()  # fail
     HSPacket.LoadJson(connection.recv(1024))  # get the all-clear from server
     if HSPacket.command == 'ready':
         HSPacket.processed = True
         return HSPacket  # handshake ends
-    return lambda x: BadPacket(JsonData=None)  # fallback return
+    return lambda x: BadPacket()  # fallback return
 
 
-def listener(Username, Destination):
+def listener(Username):
     ServerAddress = ("127.0.0.1", 8080)  # Hostname and port go here
     ClientConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # init connection
     try:  # try to connect, if you can't, shutdown
@@ -45,14 +45,14 @@ def listener(Username, Destination):
     except ConnectionRefusedError:
         print("Server may be down! Aborting...")
         sys.exit(1)  # exiting with error code
-    ListenerPacket = Handshake(connection=ClientConnection, Username=Username, Destination=Destination)
+    ListenerPacket = Handshake(connection=ClientConnection, Username=Username)
     while ListenerPacket.command == 'Bad':
-        ListenerPacket = Handshake(connection=ClientConnection, Username=Username,
-                                   Destination=Destination)  # go ahead and check if the handshake
+        ListenerPacket = Handshake(connection=ClientConnection, Username=Username)  # go ahead and check if the
+        # handshake
         # went all right
         if ListenerPacket.command == 'Bad':
             ClientConnection.close()  # if the pipe is broken, reset connection and try again
-    chatPacket = ClientPacket(None)  # create a blank packet
+    chatPacket = ClientPacket()  # create a blank packet
     while True:
         chatPacket.LoadJson(ClientConnection.recv(1024))  # get messages from the server
         print(f"\r{chatPacket.senderUsername}: {chatPacket.command[5:]}\n>", end='')  # if you got a message, print it

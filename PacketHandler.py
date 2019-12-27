@@ -6,7 +6,7 @@ DebugFlag = False
 class PacketSchema:
     """Base schema for all packet types"""
 
-    def __init__(self, JsonData):
+    def __init__(self):
         self.senderAddress = tuple()
         self.destinationAddress = tuple()
         self.senderUsername = str()
@@ -40,7 +40,7 @@ class PacketSchema:
 
 class HandshakePacket(PacketSchema):  # handshake packets have an extra parameter
     def __init__(self, JsonData):
-        super().__init__(JsonData)
+        super().__init__()
         self.connectionType = str()
         if JsonData:
             self.LoadJson(JsonData)
@@ -57,14 +57,14 @@ class ClientPacket(PacketSchema):  # superfluous, will remove
 
 class ListenerPacket(PacketSchema):  # the listener packet, equally superfluous
     def __init__(self, JsonData):
-        super().__init__(JsonData)
+        super().__init__()
         if JsonData:
             self.LoadJson(JsonData)
 
 
 class BadPacket(PacketSchema):  # bad packet
-    def __init__(self, JsonData):
-        super().__init__(JsonData)
+    def __init__(self):
+        super().__init__()
         self.command = "Bad"
 
 

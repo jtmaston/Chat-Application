@@ -55,11 +55,11 @@ def Handshake(connection, Username, Destination):
         data = HSPacket.DumpJson()
         connection.send(data)
     else:
-        return lambda x: BadPacket(JsonData=None)  # fail
+        return lambda x: BadPacket()  # fail
     HSPacket.LoadJson(connection.recv(1024))  # get the all-clear from server
     if HSPacket.command == 'ready':
         return HSPacket  # handshake ends
-    return lambda x: BadPacket(JsonData=None)  # fallback return
+    return lambda x: BadPacket()  # fallback return
 
 
 def Send(connection, DialoguePacket):  # sender function

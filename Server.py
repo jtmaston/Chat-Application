@@ -41,7 +41,7 @@ class CommunicationThread(threading.Thread):  # this is the comms thread
     def run(self):
         global routes
         inputConnection = dict(routes[self.username])['ip_in']  # get the connection on which to listen
-        chatPacket = ClientPacket(None)  # create a blank packet
+        chatPacket = ClientPacket()  # create a blank packet
         while True:
             chatPacket.LoadJson(inputConnection.recv(1024))  # getting the message from client
             outputConnection = dict(routes[chatPacket.destinationUsername])['ip_out']  # find which socket the
@@ -62,7 +62,7 @@ class routeTesterThread(threading.Thread):  # debug, will remove later
 
 
 def main():
-    LOCALHOST = ("127.0.0.1", 230602)  # server will get connections on port 2306
+    LOCALHOST = ("127.0.0.1", 8080)  # server will get connections on port 2306
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(LOCALHOST)
@@ -87,8 +87,8 @@ def main():
         CommThread = CommunicationThread(user.senderUsername)
         try:  # this is a check to see if both ip_in and ip_out are assigned, communication doesn't start until
             # both are
-            a = dict(routes[user.senderUsername])['ip_in']
-            a = dict(routes[user.senderUsername])['ip_out']
+            if dict(routes[user.senderUsername])['ip_in'] and dict(routes[user.senderUsername])['ip_out']:
+                pass
         except KeyError:
             continue
         else:

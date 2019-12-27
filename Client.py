@@ -17,7 +17,7 @@ class ListenerThread(threading.Thread):  # non-blocking listener thread
         self.Destination = Destination
 
     def run(self):
-        listener(self.Username, self.Destination)
+        listener(self.Username)
 
 
 class SenderThread(threading.Thread):  # and a non-blocking sender thread
