@@ -1,10 +1,14 @@
 import socket
+import time
 import threading
 
 from PacketHandler import HandshakePacket
+from PacketHandler import ClientPacket
 from PacketHandler import PacketFormatValidator
 
-routes = {}  # routes dict, format user: (ip,port)
+routes = dict([])  # routes dict, see below
+
+"""REMEMBER: routes now holds dictionary with structure {username: {'ip_in': sender ip, 'ip_out': listener ip}}"""
 
 
 def Handshake(connection):
@@ -27,34 +31,31 @@ def Handshake(connection):
             return False
 
 
-def Dialogue(connection, ChatPacket):
-    while True:
-        data = connection.recv(1024)
-        ChatPacket.LoadJson(data)
-        if ChatPacket.command[:5] == 'send ':
-            try:
-                DestinationSocket = routes[ChatPacket.destinationUsername]
-            except KeyError:
-                ChatPacket.command = 'usrfail'
-                ChatPacket.processed = True
-                connection.send(ChatPacket.DumpJson())
-            else:
-                DestinationSocket.send(ChatPacket.DumpJson())
-                ChatPacket.command = 'sent'
-                connection.send(ChatPacket.DumpJson())
-
-
-class ClientThread(threading.Thread):
-    def __init__(self, Address, ClientSocket):
+class CommunicationThread(threading.Thread):
+    def __init__(self, Username):
         threading.Thread.__init__(self)
-        self.socket = ClientSocket
-        self.address = Address
+        self.username = Username
+        pass
 
     def run(self):
-        user = Handshake(self.socket)  # handshake part
-        if user:
-            routes[user.senderUsername] = self.socket  # assign name to address book
-        Dialogue(connection=self.socket, ChatPacket=user)
+        global routes
+        usrList = dict(routes[self.username])
+        inputConnection = usrList['ip_in']
+        outputConnection = usrList['ip_out']
+        print("INPUT: ", inputConnection)
+        print("OUTPUT: ", outputConnection)
+
+
+class routeTesterThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        pass
+
+    def run(self):
+        while True:
+            global routes
+            time.sleep(1)
+            print(routes)
 
 
 def main():
@@ -65,11 +66,31 @@ def main():
     server.bind((LOCALHOST, PORT))
     print("Server started")
     print("Waiting for client request..")
+    routeTesterThread().start()
     while True:
         server.listen(1)
         ClientSocket, clientAddress = server.accept()
-        NewThread = ClientThread(clientAddress, ClientSocket)
-        NewThread.start()
+        user = Handshake(ClientSocket)  # handshake part
+        if user:
+            if user.connectionType == 'out':
+                try:
+                    routes[user.senderUsername].append(('ip_in', ClientSocket))
+                except KeyError:
+                    routes[user.senderUsername] = [('ip_in', ClientSocket)]
+            if user.connectionType == 'in':
+                try:
+                    routes[user.senderUsername].append(('ip_out', ClientSocket))
+                except KeyError:
+                    routes[user.senderUsername] = [('ip_out', ClientSocket)]
+        CommThread = CommunicationThread(user.senderUsername)
+        try:
+            a = dict(routes[user.senderUsername])['ip_in']
+            a = dict(routes[user.senderUsername])['ip_out']
+        except KeyError:
+            continue
+        else:
+            CommThread.start()
+
 
 
 if __name__ == '__main__':

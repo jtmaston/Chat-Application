@@ -1,15 +1,8 @@
 import json
 import socket
 
-DebugFlag = True
+DebugFlag = False
 
-"""~~~~DEV2 TODO~~~~"""
-# Done: Sender and address
-# Done: All ip addresses become tuples, w/o separate methods
-# Todo: Comment and code cleanup
-# Todo: When done, merge into dev
-# Todo: Perhaps get rid of aux packages?
-"""~~~~~~~~~~~~~~~~~"""
 
 class PacketSchema:
     """Base schema for all packet types"""
@@ -21,8 +14,6 @@ class PacketSchema:
         self.destinationUsername = str()
         self.command = str()
         self.processed = False
-        if JsonData:
-            self.LoadJson(JsonData)
 
     def load(self, json_data):  # transfer data from json to parameters
         self.senderAddress = json_data['senderAddress']
@@ -49,8 +40,15 @@ class PacketSchema:
 
 
 class HandshakePacket(PacketSchema):
-    """Packet used in Handshake part of communication"""
-    pass
+    def __init__(self, JsonData):
+        super().__init__(JsonData)
+        self.connectionType = str()
+        if JsonData:
+            self.LoadJson(JsonData)
+
+    def load(self, json_data):
+        super().load(json_data)
+        self.connectionType = json_data['connectionType']
 
 
 class ClientPacket(PacketSchema):
@@ -62,6 +60,8 @@ class ListenerPacket(PacketSchema):
     def __init__(self, JsonData):
         super().__init__(JsonData)
         self.destinationAddress = "LISTENER"
+        if JsonData:
+            self.LoadJson(JsonData)
 
 
 class BadPacket(PacketSchema):
