@@ -4,4 +4,4 @@
 * Comment and code cleanup
 * When done, merge into dev
 * Perhaps get rid of aux packages?
-* *!* Migrate to subprocesses *!*
+* ~~Find a way to communicate between threads~~ edit nvm I got it I'm dumb sometimes

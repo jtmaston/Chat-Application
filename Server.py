@@ -41,9 +41,7 @@ class CommunicationThread(threading.Thread):
         global routes
         usrList = dict(routes[self.username])
         inputConnection = usrList['ip_in']
-        outputConnection = usrList['ip_out']
-        print("INPUT: ", inputConnection)
-        print("OUTPUT: ", outputConnection)
+
 
 
 class routeTesterThread(threading.Thread):
