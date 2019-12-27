@@ -1,19 +1,17 @@
-# Import socket module
 import json
 import socket
 import sys
 import threading
 
-from PacketHandler import DebugFlag
 from PacketHandler import HandshakePacket, BadPacket
 
 
-class ThreadMessage:
+class ThreadMessage:  # maybe unnecessary
     handled = True
     message = ''
 
 
-class KeyboardThread(threading.Thread):
+class KeyboardThread(threading.Thread):  # non-blocking input
 
     def __init__(self, input_cbk=None, name='keyboard-input-thread'):
         self.input_cbk = input_cbk
@@ -28,7 +26,7 @@ class KeyboardThread(threading.Thread):
 KeyboardMessage = ThreadMessage
 
 
-def process(inp):
+def process(inp):  # set the keyboard messages
     global KeyboardMessage
     KeyboardMessage.message = inp
     KeyboardMessage.handled = False
@@ -64,11 +62,10 @@ def Handshake(connection, Username, Destination):
     return lambda x: BadPacket(JsonData=None)  # fallback return
 
 
-def Dialogue(connection, DialoguePacket):
-    print(connection.getsockname())
+def Send(connection, DialoguePacket):  # sender function
     KeyboardThread(process)
     IsConnected = True
-    global KeyboardMessage
+    global KeyboardMessage  # get a message from the keyboard thread
     print('>', end='')
     while IsConnected:
         if not KeyboardMessage.handled:
@@ -76,9 +73,6 @@ def Dialogue(connection, DialoguePacket):
             DialoguePacket.processed = False
             KeyboardMessage.handled = True
             connection.send(DialoguePacket.DumpJson())
-            DialoguePacket.LoadJson(connection.recv(1024))
-            if DialoguePacket.command == 'sent':
-                print('\r Sent.')
             print('>', end='')
 
 
@@ -96,10 +90,6 @@ def sender(Username, Destination):
         # went all right
         if ListenerPacket.command == 'Bad':
             ClientConnection.close()  # if the pipe is broken, reset connection and try again
-    Dialogue(connection=ClientConnection, DialoguePacket=DialoguePacket)
+    Send(connection=ClientConnection, DialoguePacket=DialoguePacket)
 
     ClientConnection.close()
-
-
-if __name__ == '__main__':
-    sender('alexey', 'danny')

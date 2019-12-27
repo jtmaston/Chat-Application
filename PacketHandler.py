@@ -1,5 +1,4 @@
 import json
-import socket
 
 DebugFlag = False
 
@@ -39,7 +38,7 @@ class PacketSchema:
         return self.__dict__ == other.__dict__
 
 
-class HandshakePacket(PacketSchema):
+class HandshakePacket(PacketSchema):  # handshake packets have an extra parameter
     def __init__(self, JsonData):
         super().__init__(JsonData)
         self.connectionType = str()
@@ -51,24 +50,23 @@ class HandshakePacket(PacketSchema):
         self.connectionType = json_data['connectionType']
 
 
-class ClientPacket(PacketSchema):
+class ClientPacket(PacketSchema):  # superfluous, will remove
     """Packet used for exchanging chat data"""
     pass
 
 
-class ListenerPacket(PacketSchema):
+class ListenerPacket(PacketSchema):  # the listener packet, equally superfluous
     def __init__(self, JsonData):
         super().__init__(JsonData)
-        self.destinationAddress = "LISTENER"
         if JsonData:
             self.LoadJson(JsonData)
 
 
-class BadPacket(PacketSchema):
+class BadPacket(PacketSchema):  # bad packet
     def __init__(self, JsonData):
         super().__init__(JsonData)
         self.command = "Bad"
 
 
-def PacketFormatValidator(TestedObject):
+def PacketFormatValidator(TestedObject):  # packet tester
     return isinstance(TestedObject, PacketSchema)

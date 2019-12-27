@@ -1,9 +1,8 @@
-# Import socket module
 import json
 import socket
 import sys
 
-from PacketHandler import BadPacket
+from PacketHandler import BadPacket, ClientPacket
 from PacketHandler import HandshakePacket
 
 
@@ -53,15 +52,7 @@ def listener(Username, Destination):
         # went all right
         if ListenerPacket.command == 'Bad':
             ClientConnection.close()  # if the pipe is broken, reset connection and try again
-
-    print("Listening...")
+    chatPacket = ClientPacket(None)  # create a blank packet
     while True:
-        data = ClientConnection.recv(1024)
-        ListenerPacket.LoadJson(data)
-        if not ListenerPacket.processed:
-            print(f"Message received from: {ListenerPacket.senderUsername}: {ListenerPacket.command[5:]}")
-            ListenerPacket.processed = True
-
-
-if __name__ == '__main__':
-    listener("alexey", 'danny')
+        chatPacket.LoadJson(ClientConnection.recv(1024))  # get messages from the server
+        print(f"\r{chatPacket.senderUsername}: {chatPacket.command[5:]}\n>", end='')  # if you got a message, print it

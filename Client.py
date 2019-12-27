@@ -1,5 +1,3 @@
-import socket
-import sys
 import threading
 
 from PacketHandler import DebugFlag
@@ -7,12 +5,12 @@ from clientComponents.Listener import listener
 from clientComponents.Sender import sender
 
 
-class ListenerMessage:
+class ListenerMessage:  # non-blocking listener message
     message = str()
     handled = False
 
 
-class ListenerThread(threading.Thread):
+class ListenerThread(threading.Thread):  # non-blocking listener thread
     def __init__(self, Username, Destination):
         threading.Thread.__init__(self)
         self.Username = Username
@@ -22,7 +20,7 @@ class ListenerThread(threading.Thread):
         listener(self.Username, self.Destination)
 
 
-class SenderThread(threading.Thread):
+class SenderThread(threading.Thread):  # and a non-blocking sender thread
     def __init__(self, Username, Destination):
         threading.Thread.__init__(self)
         self.Username = Username
@@ -33,18 +31,18 @@ class SenderThread(threading.Thread):
 
 
 def main():
-    if not DebugFlag:
-        print("Hello! Please enter your username!")
+    if not DebugFlag:  # check the debug flag
+        print("Hello! Please enter your username!")  # auth section
         Username = input()
         print("And you are talking to?")
         Destination = input()
     else:
         Username = 'James'
-        Destination = 'Danny'
+        Destination = 'James'
         print(f"Running in debug mode! Using username {Username} and destination {Destination}")
-    sendThread = SenderThread(Username, Destination)
+    sendThread = SenderThread(Username, Destination)  # start the sender thread
     sendThread.start()
-    listenThread = ListenerThread(Username, Destination)
+    listenThread = ListenerThread(Username, Destination)  # start the listener therad
     listenThread.start()
 
 
