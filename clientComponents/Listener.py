@@ -1,9 +1,12 @@
 import json
 import socket
 import sys
+from multiprocessing import Queue
 
 from PacketHandler import BadPacket, ClientPacket
 from PacketHandler import HandshakePacket
+
+InputQueue = Queue()
 
 
 def Handshake(connection, Username):
@@ -55,4 +58,4 @@ def listener(Username):
     chatPacket = ClientPacket()  # create a blank packet
     while True:
         chatPacket.LoadJson(ClientConnection.recv(1024))  # get messages from the server
-        print(f"\r{chatPacket.senderUsername}: {chatPacket.command[5:]}\n>", end='')  # if you got a message, print it
+        InputQueue.put(chatPacket.command[5:])

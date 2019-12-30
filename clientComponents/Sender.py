@@ -1,35 +1,11 @@
 import json
 import socket
 import sys
-import threading
+from multiprocessing import Queue
 
 from PacketHandler import HandshakePacket, BadPacket
 
-
-class ThreadMessage:  # maybe unnecessary
-    handled = True
-    message = ''
-
-
-class KeyboardThread(threading.Thread):  # non-blocking input
-
-    def __init__(self, input_cbk=None, name='keyboard-input-thread'):
-        self.input_cbk = input_cbk
-        super(KeyboardThread, self).__init__(name=name)
-        self.start()
-
-    def run(self):
-        while True:
-            self.input_cbk(input())
-
-
-KeyboardMessage = ThreadMessage
-
-
-def process(inp):  # set the keyboard messages
-    global KeyboardMessage
-    KeyboardMessage.message = inp
-    KeyboardMessage.handled = False
+OutputQueue = Queue()
 
 
 def Handshake(connection, Username, Destination):
@@ -63,17 +39,14 @@ def Handshake(connection, Username, Destination):
 
 
 def Send(connection, DialoguePacket):  # sender function
-    KeyboardThread(process)
     IsConnected = True
-    global KeyboardMessage  # get a message from the keyboard thread
-    print('>', end='')
     while IsConnected:
-        if not KeyboardMessage.handled:
-            DialoguePacket.command = "send " + KeyboardMessage.message
-            DialoguePacket.processed = False
-            KeyboardMessage.handled = True
-            connection.send(DialoguePacket.DumpJson())
-            print('>', end='')
+        print('>', end='')
+        KeyboardMessage = OutputQueue.get()
+        print(KeyboardMessage)
+        DialoguePacket.command = "send " + KeyboardMessage
+        DialoguePacket.processed = False
+        connection.send(DialoguePacket.DumpJson())
 
 
 def sender(Username, Destination):

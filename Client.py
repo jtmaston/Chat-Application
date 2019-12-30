@@ -1,8 +1,36 @@
 import threading
 
 from PacketHandler import DebugFlag
+from clientComponents.Listener import InputQueue
 from clientComponents.Listener import listener
+from clientComponents.Sender import OutputQueue
 from clientComponents.Sender import sender
+
+
+class ThreadMessage:  # maybe unnecessary
+    handled = True
+    message = ''
+
+
+class KeyboardThread(threading.Thread):  # non-blocking input
+
+    def __init__(self, input_cbk=None, name='keyboard-input-thread'):
+        self.input_cbk = input_cbk
+        super(KeyboardThread, self).__init__(name=name)
+        self.start()
+
+    def run(self):
+        while True:
+            self.input_cbk(input())
+
+
+KeyboardMessage = ThreadMessage()
+
+
+def process(inp):  # set the keyboard messages
+    global KeyboardMessage
+    KeyboardMessage.message = inp
+    KeyboardMessage.handled = False
 
 
 class ListenerMessage:  # non-blocking listener message
@@ -40,10 +68,20 @@ def main():
         Username = 'James'
         Destination = 'James'
         print(f"Running in debug mode! Using username {Username} and destination {Destination}")
-    sendThread = SenderThread(Username, Destination)  # start the sender thread
-    sendThread.start()
+    KeyboardThread(process)
     listenThread = ListenerThread(Username, Destination)  # start the listener therad
     listenThread.start()
+    sendThread = SenderThread(Username, Destination)  # start the sender thread
+    sendThread.start()
+    global KeyboardMessage
+    while True:
+        if not KeyboardMessage.handled:
+            OutputQueue.put(KeyboardMessage.message)
+            KeyboardMessage.handled = True
+        if not InputQueue.empty():
+            ReceivedData = InputQueue.get_nowait()
+            if ReceivedData:
+                print(ReceivedData)
 
 
 if __name__ == '__main__':
