@@ -2,9 +2,9 @@ import socket
 import sys
 import threading
 
-from PacketHandler import ClientPacket
-from PacketHandler import DebugFlag
-from PacketHandler import TesterPacket
+from clientComponents.PacketHandler import ClientPacket
+from clientComponents.PacketHandler import DebugFlag
+from clientComponents.PacketHandler import TesterPacket
 from clientComponents.Listener import InputQueue
 from clientComponents.Listener import listener
 from clientComponents.Sender import OutputQueue

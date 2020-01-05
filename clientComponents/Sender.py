@@ -2,7 +2,7 @@ import json
 import socket
 from multiprocessing import Queue
 
-from PacketHandler import HandshakePacket, BadPacket
+from clientComponents.PacketHandler import HandshakePacket, BadPacket
 
 OutputQueue = Queue()
 

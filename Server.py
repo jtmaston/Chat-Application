@@ -2,9 +2,9 @@ import socket
 import threading
 import time
 
-from PacketHandler import ClientPacket
-from PacketHandler import HandshakePacket
-from PacketHandler import PacketFormatValidator
+from clientComponents.PacketHandler import ClientPacket
+from clientComponents.PacketHandler import HandshakePacket
+from clientComponents.PacketHandler import PacketFormatValidator
 
 routes = dict([])  # routes dict, see below
 
