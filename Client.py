@@ -12,25 +12,19 @@ class ThreadMessage:  # maybe unnecessary
     message = ''
 
 
-class KeyboardThread(threading.Thread):  # non-blocking input
-
-    def __init__(self, input_cbk=None, name='keyboard-input-thread'):
-        self.input_cbk = input_cbk
-        super(KeyboardThread, self).__init__(name=name)
-        self.start()
-
-    def run(self):
-        while True:
-            self.input_cbk(input())
-
-
 KeyboardMessage = ThreadMessage()
 
 
-def process(inp):  # set the keyboard messages
-    global KeyboardMessage
-    KeyboardMessage.message = inp
-    KeyboardMessage.handled = False
+class KeyboardThread(threading.Thread):  # non-blocking input
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+
+    def run(self):
+        global KeyboardMessage
+        while True:
+            KeyboardMessage.message = input()
+            KeyboardMessage.handled = False
 
 
 class ListenerMessage:  # non-blocking listener message
@@ -68,7 +62,7 @@ def main():
         Username = 'James'
         Destination = 'James'
         print(f"Running in debug mode! Using username {Username} and destination {Destination}")
-    KeyboardThread(process)
+    KeyboardThread().start()
     listenThread = ListenerThread(Username, Destination)  # start the listener therad
     listenThread.start()
     sendThread = SenderThread(Username, Destination)  # start the sender thread
