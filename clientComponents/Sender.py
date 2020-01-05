@@ -41,16 +41,14 @@ def Handshake(connection, Username, Destination):
 def Send(connection, DialoguePacket):  # sender function
     IsConnected = True
     while IsConnected:
-        print('>', end='')
         KeyboardMessage = OutputQueue.get()
-        print(KeyboardMessage)
         DialoguePacket.command = "send " + KeyboardMessage
         DialoguePacket.processed = False
         connection.send(DialoguePacket.DumpJson())
 
 
 def sender(Username, Destination):
-    ServerAddress = ("127.0.0.1", 8080)  # Hostname and port go here
+    ServerAddress = ("127.0.0.1", 1864)  # Hostname and port go here
     ClientConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # init connection
     try:  # try to connect, if you can't, shutdown
         ClientConnection.connect(ServerAddress)

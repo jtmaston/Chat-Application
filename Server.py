@@ -62,7 +62,7 @@ class routeTesterThread(threading.Thread):  # debug, will remove later
 
 
 def main():
-    LOCALHOST = ("127.0.0.1", 8080)  # server will get connections on port 2306
+    LOCALHOST = ("127.0.0.1", 1864)  # server will get connections on port 2306
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind(LOCALHOST)
