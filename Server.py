@@ -20,6 +20,8 @@ def Handshake(connection):  # this is how the communication begins
         print("Broken connection! Sending abort message...")
         return False
     else:
+        if HSPacket.command == 'test':
+            return False
         HSPacket.command = 'read_back'  # integrity check, basically see if anything gets kaput on the way
         connection.send(HSPacket.DumpJson())
         HSPacket.LoadJson(connection.recv(1024))
@@ -84,15 +86,15 @@ def main():
                     routes[user.senderUsername].append(('ip_out', ClientSocket))
                 except KeyError:
                     routes[user.senderUsername] = [('ip_out', ClientSocket)]
-        CommThread = CommunicationThread(user.senderUsername)
-        try:  # this is a check to see if both ip_in and ip_out are assigned, communication doesn't start until
-            # both are
-            if dict(routes[user.senderUsername])['ip_in'] and dict(routes[user.senderUsername])['ip_out']:
-                pass
-        except KeyError:
-            continue
-        else:
-            CommThread.start()  # start the commnuication thread
+            CommThread = CommunicationThread(user.senderUsername)
+            try:  # this is a check to see if both ip_in and ip_out are assigned, communication doesn't start until
+                # both are
+                if dict(routes[user.senderUsername])['ip_in'] and dict(routes[user.senderUsername])['ip_out']:
+                    pass
+            except KeyError:
+                continue
+            else:
+                CommThread.start()  # start the commnuication thread
 
 
 if __name__ == '__main__':

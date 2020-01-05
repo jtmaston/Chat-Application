@@ -1,6 +1,5 @@
 import json
 import socket
-import sys
 from multiprocessing import Queue
 
 from PacketHandler import HandshakePacket, BadPacket
@@ -50,11 +49,7 @@ def Send(connection, DialoguePacket):  # sender function
 def sender(Username, Destination):
     ServerAddress = ("127.0.0.1", 1864)  # Hostname and port go here
     ClientConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # init connection
-    try:  # try to connect, if you can't, shutdown
-        ClientConnection.connect(ServerAddress)
-    except ConnectionRefusedError:
-        print("Server may be down! Aborting...")
-        sys.exit(1)  # exiting with error code
+    ClientConnection.connect(ServerAddress)
     DialoguePacket = Handshake(ClientConnection, Username, Destination)
     while DialoguePacket.command == 'Bad':
         ListenerPacket = Handshake(ClientConnection, Username, Destination)  # go ahead and check if the handshake

@@ -68,5 +68,12 @@ class BadPacket(PacketSchema):  # bad packet
         self.command = "Bad"
 
 
+class TesterPacket(PacketSchema):  # bad packet
+    def __init__(self):
+        super().__init__()
+        self.command = "test"
+        self.connectionType = "none"
+
+
 def PacketFormatValidator(TestedObject):  # packet tester
     return isinstance(TestedObject, PacketSchema)

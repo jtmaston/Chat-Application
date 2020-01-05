@@ -1,6 +1,5 @@
 import json
 import socket
-import sys
 from multiprocessing import Queue
 
 from PacketHandler import BadPacket, ClientPacket
@@ -43,11 +42,7 @@ def Handshake(connection, Username):
 def listener(Username):
     ServerAddress = ("127.0.0.1", 1864)  # Hostname and port go here
     ClientConnection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # init connection
-    try:  # try to connect, if you can't, shutdown
-        ClientConnection.connect(ServerAddress)
-    except ConnectionRefusedError:
-        print("Server may be down! Aborting...")
-        sys.exit(1)  # exiting with error code
+    ClientConnection.connect(ServerAddress)
     ListenerPacket = Handshake(connection=ClientConnection, Username=Username)
     while ListenerPacket.command == 'Bad':
         ListenerPacket = Handshake(connection=ClientConnection, Username=Username)  # go ahead and check if the
@@ -58,4 +53,4 @@ def listener(Username):
     chatPacket = ClientPacket()  # create a blank packet
     while True:
         chatPacket.LoadJson(ClientConnection.recv(1024))  # get messages from the server
-        InputQueue.put(chatPacket.command[5:])
+        InputQueue.put(chatPacket.DumpJson())

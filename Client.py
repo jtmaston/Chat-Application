@@ -1,6 +1,10 @@
+import socket
+import sys
 import threading
 
+from PacketHandler import ClientPacket
 from PacketHandler import DebugFlag
+from PacketHandler import TesterPacket
 from clientComponents.Listener import InputQueue
 from clientComponents.Listener import listener
 from clientComponents.Sender import OutputQueue
@@ -23,7 +27,7 @@ class KeyboardThread(threading.Thread):  # non-blocking input
     def run(self):
         global KeyboardMessage
         while True:
-            KeyboardMessage.message = input()
+            KeyboardMessage.message = input('>')
             KeyboardMessage.handled = False
 
 
@@ -53,6 +57,15 @@ class SenderThread(threading.Thread):  # and a non-blocking sender thread
 
 
 def main():
+    Tester = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # init connection
+    TestPack = TesterPacket()
+    try:  # try to connect, if you can't, shutdown
+        Tester.connect(('127.0.0.1', 1864))
+        Tester.send(TestPack.DumpJson())
+    except ConnectionRefusedError:
+        print("Server may be down! Aborting...")
+        sys.exit(1)  # exiting with error code
+    Tester.close()
     if not DebugFlag:  # check the debug flag
         print("Hello! Please enter your username!")  # auth section
         Username = input()
@@ -68,14 +81,16 @@ def main():
     sendThread = SenderThread(Username, Destination)  # start the sender thread
     sendThread.start()
     global KeyboardMessage
+    ReceivedPacket = ClientPacket()
     while True:
         if not KeyboardMessage.handled:
             OutputQueue.put(KeyboardMessage.message)
             KeyboardMessage.handled = True
         if not InputQueue.empty():
-            ReceivedData = InputQueue.get_nowait()
-            if ReceivedData:
-                print(ReceivedData)
+            arrivedData = InputQueue.get_nowait()
+            if arrivedData:
+                ReceivedPacket.LoadJson(arrivedData)
+                print('\r' + ReceivedPacket.senderUsername + ' said: ' + ReceivedPacket.command[5:], end='\n>')
 
 
 if __name__ == '__main__':
