@@ -70,7 +70,6 @@ def main():
     server.bind(LOCALHOST)
     print("Server started")
     print("Waiting for client request..")
-    # routeTesterThread().start()
     while True:
         server.listen(1)
         ClientSocket, clientAddress = server.accept()
