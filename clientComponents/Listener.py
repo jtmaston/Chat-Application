@@ -53,4 +53,7 @@ def listener(Username):
     chatPacket = ClientPacket()  # create a blank packet
     while True:
         chatPacket.LoadJson(ClientConnection.recv(1024))  # get messages from the server
-        InputQueue.put(chatPacket.DumpJson())
+        if chatPacket.command == 'halt':
+            exit(0)
+        else:
+            InputQueue.put((chatPacket.command[5:], chatPacket.senderUsername))

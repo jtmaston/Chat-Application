@@ -1,6 +1,6 @@
+import json
 import socket
 import threading
-import time
 
 from clientComponents.PacketHandler import ClientPacket
 from clientComponents.PacketHandler import HandshakePacket
@@ -38,29 +38,26 @@ class CommunicationThread(threading.Thread):  # this is the comms thread
     def __init__(self, Username):
         threading.Thread.__init__(self)
         self.username = Username
-        pass
 
     def run(self):
         global routes
         inputConnection = dict(routes[self.username])['ip_in']  # get the connection on which to listen
         chatPacket = ClientPacket()  # create a blank packet
         while True:
-            chatPacket.LoadJson(inputConnection.recv(1024))  # getting the message from client
-            outputConnection = dict(routes[chatPacket.destinationUsername])['ip_out']  # find which socket the
-            # message should be sent to
-            outputConnection.send(chatPacket.DumpJson())  # and send it
-
-
-class routeTesterThread(threading.Thread):  # debug, will remove later
-    def __init__(self):
-        threading.Thread.__init__(self)
-        pass
-
-    def run(self):
-        while True:
-            global routes
-            time.sleep(1)
-            print(routes)
+            try:
+                chatPacket.LoadJson(inputConnection.recv(1024))  # getting the message from client
+            except ConnectionResetError or json.decoder.JSONDecodeError:
+                print(f"closed connection to {inputConnection.getsockname()}")
+                exit(0)
+            try:
+                outputConnection = dict(routes[chatPacket.destinationUsername])[
+                    'ip_out']  # find which socket the message should be sent to
+            except KeyError:
+                chatPacket.command = 'notFound'
+                outputConnection = dict(routes[chatPacket.senderUsername])['ip_out']
+                outputConnection.send(chatPacket.DumpJson())
+            else:
+                outputConnection.send(chatPacket.DumpJson())  # and send it
 
 
 def main():
@@ -70,6 +67,7 @@ def main():
     server.bind(LOCALHOST)
     print("Server started")
     print("Waiting for client request..")
+
     while True:
         server.listen(1)
         ClientSocket, clientAddress = server.accept()

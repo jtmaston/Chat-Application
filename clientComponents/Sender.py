@@ -40,10 +40,16 @@ def Handshake(connection, Username, Destination):
 def Send(connection, DialoguePacket):  # sender function
     IsConnected = True
     while IsConnected:
-        KeyboardMessage = OutputQueue.get()
-        DialoguePacket.command = "send " + KeyboardMessage
-        DialoguePacket.processed = False
-        connection.send(DialoguePacket.DumpJson())
+        message = OutputQueue.get()
+        if message == 'halt':
+            DialoguePacket.command = 'halt'
+            DialoguePacket.destinationUsername = DialoguePacket.senderUsername
+            connection.send(DialoguePacket.DumpJson())
+            exit(0)
+        else:
+            DialoguePacket.command = "send " + message
+            DialoguePacket.processed = False
+            connection.send(DialoguePacket.DumpJson())
 
 
 def sender(Username, Destination):
