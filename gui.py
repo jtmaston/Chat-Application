@@ -14,6 +14,10 @@ class ChatApp(App):
         super(ChatApp, self).__init__()
         Clock.schedule_interval(self.listen_to_queue, 0.5)
 
+    def on_request_close(self, *args):
+        self.disconnect()
+        return True
+
     def connect(self):
         username = self.root.ids.username.text
         destination = self.root.ids.destination.text
@@ -52,4 +56,5 @@ if __name__ == '__main__':
     Config.set('graphics', 'width', '600')
     Config.set('graphics', 'height', '900')
     Application.run()
-    exit(0)
+    OutputQueue.put('halt')
+    InputQueue.put('halt')

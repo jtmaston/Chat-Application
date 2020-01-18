@@ -46,16 +46,14 @@ class CommunicationThread(threading.Thread):  # this is the comms thread
         while True:
             try:
                 chatPacket.LoadJson(inputConnection.recv(1024))  # getting the message from client
-            except ConnectionResetError or json.decoder.JSONDecodeError:
-                print(f"closed connection to {inputConnection.getsockname()}")
+            except (ConnectionResetError, json.decoder.JSONDecodeError):
+                print(f"closed connection to {inputConnection.getpeername()}")
                 exit(0)
             try:
                 outputConnection = dict(routes[chatPacket.destinationUsername])[
                     'ip_out']  # find which socket the message should be sent to
             except KeyError:
-                chatPacket.command = 'notFound'
-                outputConnection = dict(routes[chatPacket.senderUsername])['ip_out']
-                outputConnection.send(chatPacket.DumpJson())
+                print(f'An attempt was made to contact user {chatPacket.destinationUsername}, who is offline')
             else:
                 outputConnection.send(chatPacket.DumpJson())  # and send it
 
