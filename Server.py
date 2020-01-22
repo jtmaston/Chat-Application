@@ -6,27 +6,25 @@ from clientComponents.PacketHandler import ClientPacket
 from clientComponents.PacketHandler import HandshakePacket
 from clientComponents.PacketHandler import PacketFormatValidator
 
-routes = dict([])  # routes dict, see below
-
-"""REMEMBER: routes now holds dictionary with structure {username: {'ip_in': sender ip, 'ip_out': listener ip}}"""
+routes = dict([])
 
 
 def Handshake(connection):  # this is how the communication begins
     HSPacket = HandshakePacket(connection.recv(1024))  # load json from recvd packet
-    if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'Handshake'):  # if somehow the chat is
+    if not (PacketFormatValidator(HSPacket) and HSPacket.command == 'Handshake'):
         # corrupted, send it back
         HSPacket.command = 'Bad'
         connection.send(HSPacket.DumpJson())
-        print("Broken connection! Sending abort message...")
+        # print("Broken connection! Sending abort message...")
         return False
     else:
         if HSPacket.command == 'test':
             return False
-        HSPacket.command = 'read_back'  # integrity check, basically see if anything gets kaput on the way
+        HSPacket.command = 'read_back'
         connection.send(HSPacket.DumpJson())
         HSPacket.LoadJson(connection.recv(1024))
         if HSPacket.command == 'ok':
-            print(f"Handshake established with {connection.getpeername()}")  # handshake ok, start it
+            print(f"Handshake established with {connection.getpeername()}")
             HSPacket.command = 'ready'
             connection.send(HSPacket.DumpJson())
             return HSPacket
@@ -41,8 +39,8 @@ class CommunicationThread(threading.Thread):  # this is the comms thread
 
     def run(self):
         global routes
-        inputConnection = dict(routes[self.username])['ip_in']  # get the connection on which to listen
-        chatPacket = ClientPacket()  # create a blank packet
+        inputConnection = dict(routes[self.username])['ip_in']
+        chatPacket = ClientPacket()
         while True:
             try:
                 chatPacket.LoadJson(inputConnection.recv(1024))  # getting the message from client

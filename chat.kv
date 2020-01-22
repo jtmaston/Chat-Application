@@ -64,7 +64,7 @@ ScreenManager:
 
                 TextInput:
                     id: username
-                    text: 'Alexey'
+                    text: ''
 
                 Label:
                     text: 'Partner name'
@@ -72,14 +72,14 @@ ScreenManager:
 
                 TextInput:
                     id: destination
-                    text: 'Danny'
+                    text: ''
 
             Button:
                 text: 'Connect'
                 on_press: app.connect()
 
     Screen:
-        name: 'chatroom'
+        name: 'chatRoom'
         BoxLayout:
             orientation: 'vertical'
 
@@ -118,7 +118,7 @@ ScreenManager:
             GridLayout:
 
                 Label:
-                    text: 'A connection error occured. \nThe server may be down. \nPlease try again later.'
+                    text: 'A connection error occurred. \nThe server may be down. \nPlease try again later.'
                     size_hint: (0.4, 1)
             Button:
                 text: 'Retry'

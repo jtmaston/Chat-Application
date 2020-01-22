@@ -4,7 +4,7 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
 
-import Client
+from clientComponents import Client
 from clientComponents.Listener import InputQueue
 from clientComponents.Sender import OutputQueue
 
@@ -14,7 +14,8 @@ class ChatApp(App):
         super(ChatApp, self).__init__()
         Clock.schedule_interval(self.listen_to_queue, 0.5)
 
-    def on_request_close(self, *args):
+    def on_request_close(self, timestamp):
+        del timestamp
         self.disconnect()
         return True
 
@@ -26,7 +27,7 @@ class ChatApp(App):
         except ConnectionError:
             self.root.current = 'errorScreen'
         else:
-            self.root.current = 'chatroom'
+            self.root.current = 'chatRoom'
 
     def send(self):
         OutputQueue.put(self.root.ids.message.text)
@@ -36,7 +37,8 @@ class ChatApp(App):
     def on_message(self, msg):
         self.root.ids.chat_logs.text += f'\t {msg} \n'
 
-    def listen_to_queue(self, *args):
+    def listen_to_queue(self, exec_time):
+        del exec_time
         try:
             data = InputQueue.get_nowait()
         except _queue.Empty:
