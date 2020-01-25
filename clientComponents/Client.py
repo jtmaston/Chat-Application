@@ -7,31 +7,6 @@ from clientComponents.Sender import OutputQueue
 from clientComponents.Sender import sender
 
 
-class ThreadMessage:  # maybe unnecessary
-    handled = True
-    message = ''
-
-
-KeyboardMessage = ThreadMessage()
-
-
-class KeyboardThread(threading.Thread):  # non-blocking input
-
-    def __init__(self):
-        threading.Thread.__init__(self)
-
-    def run(self):
-        global KeyboardMessage
-        while True:
-            KeyboardMessage.message = input('>')
-            KeyboardMessage.handled = False
-
-
-class ListenerMessage:  # non-blocking listener message
-    message = str()
-    handled = False
-
-
 class ListenerThread(threading.Thread):  # non-blocking listener thread
     def __init__(self, Username, Destination):
         threading.Thread.__init__(self)
